@@ -108,6 +108,9 @@ class BaseSearchDto {
 
   @ValidateBoolean({ optional: true })
   isNotInAlbum?: boolean;
+  
+  @ValidateBoolean({ optional: true })
+  atLeastOnePerson?: boolean;
 
   @ValidateUUID({ each: true, optional: true })
   personIds?: string[];

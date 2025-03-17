@@ -268,6 +268,20 @@ export function hasPeople<O>(qb: SelectQueryBuilder<DB, 'assets', O>, personIds:
   );
 }
 
+export function hasSomePeople<O>(qb: SelectQueryBuilder<DB, 'assets', O>, personIds: string[]) {
+  return qb.innerJoin(
+    (eb) =>
+      eb
+        .selectFrom('asset_faces')
+        .select('assetId')
+        .where('personId', '=', anyUuid(personIds!))
+        .where('deletedAt', 'is', null)
+        .groupBy('assetId')
+        .as('has_some_people'),
+    (join) => join.onRef('has_some_people.assetId', '=', 'assets.id'),
+  );
+}
+
 export function hasTags<O>(qb: SelectQueryBuilder<DB, 'assets', O>, tagIds: string[]) {
   return qb.innerJoin(
     (eb) =>
@@ -358,7 +372,8 @@ export function searchAssetBuilder(kysely: Kysely<DB>, options: AssetSearchBuild
     .selectFrom('assets')
     .selectAll('assets')
     .$if(!!options.tagIds && options.tagIds.length > 0, (qb) => hasTags(qb, options.tagIds!))
-    .$if(!!options.personIds && options.personIds.length > 0, (qb) => hasPeople(qb, options.personIds!))
+    .$if(!!options.personIds && options.personIds.length > 0 && options.atLeastOnePerson, (qb) => hasSomePeople(qb, options.personIds!))
+    .$if(!!options.personIds && options.personIds.length > 0 && !options.atLeastOnePerson, (qb) => hasPeople(qb, options.personIds!))
     .$if(!!options.createdBefore, (qb) => qb.where('assets.createdAt', '<=', options.createdBefore!))
     .$if(!!options.createdAfter, (qb) => qb.where('assets.createdAt', '>=', options.createdAfter!))
     .$if(!!options.updatedBefore, (qb) => qb.where('assets.updatedAt', '<=', options.updatedBefore!))

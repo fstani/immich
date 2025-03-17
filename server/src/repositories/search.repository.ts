@@ -118,6 +118,7 @@ export interface SearchEmbeddingOptions {
 }
 
 export interface SearchPeopleOptions {
+  atLeastOnePerson?: boolean;
   personIds?: string[];
 }
 
